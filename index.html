@@ -1,0 +1,973 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DEEPAK Portfolio | Winter Experience</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            overflow-x: hidden;
+            background: linear-gradient(to bottom, #0a1128 0%, #1a2b4f 50%, #2d4270 100%);
+            color: #fff;
+        }
+        
+        #canvas-container { 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            z-index: 1;
+        }
+        
+        .snowflake {
+            position: fixed;
+            top: -10px;
+            z-index: 2;
+            user-select: none;
+            cursor: default;
+            animation: fall linear infinite;
+            color: rgba(255, 255, 255, 0.8);
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        }
+        
+        @keyframes fall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+            }
+        }
+        
+        .content { 
+            position: relative; 
+            z-index: 10; 
+            pointer-events: none;
+        }
+        .content > * { pointer-events: auto; }
+        
+        .frost-panel {
+            background: rgba(240, 248, 255, 0.08);
+            backdrop-filter: blur(30px) saturate(150%);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 24px;
+            box-shadow: 
+                0 8px 32px 0 rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.3),
+                0 0 20px rgba(173, 216, 230, 0.3);
+        }
+        
+        .ice-text {
+            background: linear-gradient(135deg, #e0f7ff 0%, #b3e5fc 25%, #81d4fa 50%, #b3e5fc 75%, #e0f7ff 100%);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: iceShimmer 4s ease infinite;
+            text-shadow: 0 0 30px rgba(129, 212, 250, 0.5);
+        }
+        
+        @keyframes iceShimmer {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        .winter-glow {
+            box-shadow: 
+                0 0 30px rgba(173, 216, 230, 0.4),
+                0 0 60px rgba(135, 206, 250, 0.3),
+                inset 0 0 20px rgba(255, 255, 255, 0.1);
+        }
+        
+        .project-card {
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .project-card::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            background: linear-gradient(135deg, #e0f7ff, #81d4fa, #4fc3f7);
+            border-radius: 24px;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            z-index: -1;
+        }
+        
+        .project-card:hover::before {
+            opacity: 0.6;
+        }
+        
+        .project-card:hover {
+            transform: translateY(-12px) scale(1.03);
+            box-shadow: 
+                0 20px 60px rgba(129, 212, 250, 0.5),
+                0 0 80px rgba(173, 216, 230, 0.3);
+        }
+        
+        .floating {
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        .nav-link {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, #81d4fa, #b3e5fc);
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+        }
+        
+        .nav-link:hover::after {
+            transform: translateX(0);
+        }
+        
+        .scroll-indicator {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            animation: bounce 2s infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0) translateX(-50%); }
+            40% { transform: translateY(-20px) translateX(-50%); }
+            60% { transform: translateY(-10px) translateX(-50%); }
+        }
+        
+        .ice-btn {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, rgba(129, 212, 250, 0.3), rgba(179, 229, 252, 0.3));
+            border: 2px solid rgba(129, 212, 250, 0.5);
+        }
+        
+        .ice-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.8s ease, height 0.8s ease;
+        }
+        
+        .ice-btn:hover::before {
+            width: 400px;
+            height: 400px;
+        }
+        
+        .ice-btn:hover {
+            box-shadow: 0 0 40px rgba(129, 212, 250, 0.6);
+        }
+        
+        .hero-line {
+            width: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #81d4fa, #b3e5fc, #81d4fa, transparent);
+            margin: 2rem auto;
+            animation: lineExpand 2s ease forwards;
+            box-shadow: 0 0 20px rgba(129, 212, 250, 0.8);
+        }
+        
+        @keyframes lineExpand {
+            to { width: 80%; }
+        }
+        
+        .magnetic-btn {
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        .stats-counter {
+            font-feature-settings: 'tnum';
+            font-variant-numeric: tabular-nums;
+        }
+        
+        .winter-orb {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, rgba(173, 216, 230, 0.4), rgba(135, 206, 250, 0.1));
+            filter: blur(60px);
+            animation: orbFloat 20s ease-in-out infinite;
+        }
+        
+        @keyframes orbFloat {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(50px, -50px) scale(1.1); }
+            50% { transform: translate(-30px, 30px) scale(0.9); }
+            75% { transform: translate(30px, 50px) scale(1.05); }
+        }
+        
+        .ice-crystal {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+            animation: twinkle 3s ease-in-out infinite;
+        }
+        
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.5); }
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+    <div id="snowfall"></div>
+    
+    <div class="content">
+        <!-- Navigation -->
+        <nav class="fixed w-full top-0 z-50 py-4 px-4">
+            <div class="max-w-7xl mx-auto">
+                <div class="frost-panel px-6 md:px-8 py-4 flex justify-between items-center">
+                    <div class="text-2xl md:text-3xl font-bold ice-text tracking-tight">❄ DEEPAK</div>
+                    <div class="hidden md:flex items-center space-x-8">
+                        <a href="#home" class="nav-link hover:text-blue-200 transition font-medium">Home</a>
+                        <a href="#about" class="nav-link hover:text-blue-200 transition font-medium">About</a>
+                        <a href="#skills" class="nav-link hover:text-blue-200 transition font-medium">Skills</a>
+                        <a href="#projects" class="nav-link hover:text-blue-200 transition font-medium">Projects</a>
+                        <a href="#contact" class="px-6 py-2 ice-btn rounded-full font-semibold transition-all">
+                            Contact
+                        </a>
+                    </div>
+                    <button class="md:hidden text-blue-200">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Hero Section -->
+        <section id="home" class="min-h-screen flex items-center justify-center px-4 relative overflow-hidden">
+            <div class="winter-orb" style="width: 400px; height: 400px; top: 10%; left: 10%;"></div>
+            <div class="winter-orb" style="width: 500px; height: 500px; bottom: 10%; right: 10%; animation-delay: -10s;"></div>
+            
+            <div class="text-center max-w-6xl relative z-10">
+                <div class="mb-4 inline-block px-6 py-2 frost-panel">
+                    <span class="text-sm text-blue-200 font-semibold tracking-wider">❄ WINTER CREATIVE DEVELOPER</span>
+                </div>
+                <div class="floating mb-8">
+                    <h1 class="text-6xl md:text-8xl lg:text-9xl font-black ice-text mb-4 tracking-tight leading-none">
+                        PORTFOLIO
+                    </h1>
+                    <div class="hero-line"></div>
+                </div>
+                <p class="text-xl md:text-2xl lg:text-3xl text-blue-100 mb-12 leading-relaxed max-w-4xl mx-auto">
+                    Creating magical web experiences as beautiful as
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-200 to-cyan-200 font-bold"> freshly fallen snow</span>
+                    <br class="hidden md:block"/>
+                    with cutting-edge <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-200 to-blue-300 font-bold">3D technology</span>
+                </p>
+                <div class="flex flex-wrap justify-center gap-6 mb-16">
+                    <button onclick="scrollToSection('projects')" class="magnetic-btn ice-btn px-12 py-5 rounded-full font-bold text-lg transition-all relative overflow-hidden group winter-glow">
+                        <span class="relative z-10">View Projects ❄</span>
+                    </button>
+                    <button onclick="scrollToSection('contact')" class="magnetic-btn ice-btn px-12 py-5 rounded-full font-bold text-lg transition-all">
+                        Let's Talk ☃
+                    </button>
+                </div>
+                <div class="flex justify-center gap-6 text-sm text-blue-200">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></div>
+                        <span>Available for projects</span>
+                    </div>
+                    <div class="hidden md:flex items-center gap-2">
+                        <span>•</span>
+                        <span>Based in India</span>
+                    </div>
+                </div>
+                <div class="scroll-indicator">
+                    <svg width="30" height="50" viewBox="0 0 30 50">
+                        <rect x="5" y="5" width="20" height="35" rx="10" fill="none" stroke="#81d4fa" stroke-width="2"/>
+                        <circle cx="15" cy="15" r="3" fill="#81d4fa">
+                            <animate attributeName="cy" from="15" to="30" dur="1.5s" repeatCount="indefinite"/>
+                        </circle>
+                    </svg>
+                </div>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section id="about" class="min-h-screen flex items-center justify-center px-4 py-20">
+            <div class="max-w-6xl mx-auto">
+                <h2 class="text-5xl md:text-6xl font-bold ice-text mb-16 text-center">About Me ❄</h2>
+                <div class="frost-panel p-8 md:p-12 winter-glow">
+                    <div class="grid md:grid-cols-2 gap-12 items-center">
+                        <div>
+                            <div class="relative">
+                                <div class="absolute inset-0 bg-gradient-to-r from-cyan-400 to-blue-400 rounded-2xl blur-xl opacity-30"></div>
+                                <div class="relative frost-panel p-8">
+                                    <div id="profile-canvas" style="width: 100%; height: 300px;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="text-3xl font-bold mb-6 text-blue-200">Winter Creative Developer</h3>
+                            <p class="text-blue-100 text-lg leading-relaxed mb-6">
+                                I specialize in crafting stunning 3D web experiences that are as captivating as a winter wonderland. 
+                                With expertise in WebGL, Three.js, and interactive design, I bring frozen beauty to digital spaces.
+                            </p>
+                            <div class="grid grid-cols-2 gap-4 text-center">
+                                <div class="frost-panel p-6 hover:scale-105 transition-transform winter-glow">
+                                    <div class="text-5xl font-black stats-counter ice-text mb-2" data-target="50">0</div>
+                                    <div class="text-blue-200 text-sm font-medium">Projects Completed</div>
+                                </div>
+                                <div class="frost-panel p-6 hover:scale-105 transition-transform winter-glow">
+                                    <div class="text-5xl font-black stats-counter ice-text mb-2" data-target="7">0</div>
+                                    <div class="text-blue-200 text-sm font-medium">Years Experience</div>
+                                </div>
+                                <div class="frost-panel p-6 hover:scale-105 transition-transform winter-glow">
+                                    <div class="text-5xl font-black stats-counter ice-text mb-2" data-target="30">0</div>
+                                    <div class="text-blue-200 text-sm font-medium">Happy Clients</div>
+                                </div>
+                                <div class="frost-panel p-6 hover:scale-105 transition-transform winter-glow">
+                                    <div class="text-5xl font-black stats-counter ice-text mb-2" data-target="15">0</div>
+                                    <div class="text-blue-200 text-sm font-medium">Awards Won</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Skills Section -->
+        <section id="skills" class="min-h-screen flex items-center justify-center px-4 py-20">
+            <div class="max-w-6xl mx-auto w-full">
+                <h2 class="text-5xl md:text-6xl font-bold ice-text mb-16 text-center">Expertise ☃</h2>
+                <div class="grid md:grid-cols-3 gap-8">
+                    <div class="frost-panel p-8 text-center hover:transform hover:scale-105 transition-all winter-glow">
+                        <div class="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-cyan-400 to-blue-400 flex items-center justify-center text-3xl">
+                            🎨
+                        </div>
+                        <h3 class="text-2xl font-bold mb-4 text-blue-100">3D Design</h3>
+                        <p class="text-blue-200">Three.js, WebGL, Blender, Cinema 4D</p>
+                    </div>
+                    <div class="frost-panel p-8 text-center hover:transform hover:scale-105 transition-all winter-glow">
+                        <div class="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-blue-400 to-cyan-400 flex items-center justify-center text-3xl">
+                            💻
+                        </div>
+                        <h3 class="text-2xl font-bold mb-4 text-blue-100">Development</h3>
+                        <p class="text-blue-200">React, JavaScript, TypeScript, GLSL</p>
+                    </div>
+                    <div class="frost-panel p-8 text-center hover:transform hover:scale-105 transition-all winter-glow">
+                        <div class="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-cyan-300 to-blue-500 flex items-center justify-center text-3xl">
+                            ⚡
+                        </div>
+                        <h3 class="text-2xl font-bold mb-4 text-blue-100">Animation</h3>
+                        <p class="text-blue-200">GSAP, Framer Motion, Physics</p>
+                    </div>
+                </div>
+                
+                <div class="mt-16 frost-panel p-8 winter-glow">
+                    <h3 class="text-3xl font-bold mb-8 text-center ice-text">Technical Skills</h3>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <span class="font-semibold text-blue-100">Three.js / WebGL</span>
+                                <span class="text-cyan-300">95%</span>
+                            </div>
+                            <div class="h-3 bg-blue-900/30 rounded-full overflow-hidden">
+                                <div class="h-full bg-gradient-to-r from-cyan-400 to-blue-400 rounded-full" style="width: 95%; box-shadow: 0 0 10px rgba(129, 212, 250, 0.6);"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <span class="font-semibold text-blue-100">React / Next.js</span>
+                                <span class="text-cyan-300">92%</span>
+                            </div>
+                            <div class="h-3 bg-blue-900/30 rounded-full overflow-hidden">
+                                <div class="h-full bg-gradient-to-r from-blue-400 to-cyan-400 rounded-full" style="width: 92%; box-shadow: 0 0 10px rgba(129, 212, 250, 0.6);"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <span class="font-semibold text-blue-100">GLSL Shaders</span>
+                                <span class="text-cyan-300">88%</span>
+                            </div>
+                            <div class="h-3 bg-blue-900/30 rounded-full overflow-hidden">
+                                <div class="h-full bg-gradient-to-r from-cyan-300 to-blue-500 rounded-full" style="width: 88%; box-shadow: 0 0 10px rgba(129, 212, 250, 0.6);"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <span class="font-semibold text-blue-100">Animation (GSAP)</span>
+                                <span class="text-cyan-300">90%</span>
+                            </div>
+                            <div class="h-3 bg-blue-900/30 rounded-full overflow-hidden">
+                                <div class="h-full bg-gradient-to-r from-blue-400 to-cyan-300 rounded-full" style="width: 90%; box-shadow: 0 0 10px rgba(129, 212, 250, 0.6);"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Projects Section -->
+        <section id="projects" class="min-h-screen flex items-center justify-center px-4 py-20">
+            <div class="max-w-7xl mx-auto w-full">
+                <h2 class="text-5xl md:text-6xl font-bold ice-text mb-16 text-center">Featured Work ❄</h2>
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Project 1 -->
+                    <div class="project-card frost-panel overflow-hidden">
+                        <div class="relative h-64 bg-gradient-to-br from-cyan-900/50 to-blue-900/50">
+                            <div id="project1-canvas" style="width: 100%; height: 100%;"></div>
+                            <div class="absolute inset-0 bg-gradient-to-t from-blue-900/90 to-transparent flex items-end p-6">
+                                <div>
+                                    <h3 class="text-2xl font-bold mb-2 text-blue-100">Winter Particle System</h3>
+                                    <p class="text-blue-200 text-sm">Interactive snowflakes with 10,000+ particles</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <div class="flex flex-wrap gap-2">
+                                <span class="px-3 py-1 bg-cyan-500/20 rounded-full text-xs border border-cyan-400/30">Three.js</span>
+                                <span class="px-3 py-1 bg-blue-500/20 rounded-full text-xs border border-blue-400/30">WebGL</span>
+                                <span class="px-3 py-1 bg-cyan-600/20 rounded-full text-xs border border-cyan-500/30">GLSL</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Project 2 -->
+                    <div class="project-card frost-panel overflow-hidden">
+                        <div class="relative h-64 bg-gradient-to-br from-blue-900/50 to-cyan-900/50">
+                            <div id="project2-canvas" style="width: 100%; height: 100%;"></div>
+                            <div class="absolute inset-0 bg-gradient-to-t from-blue-900/90 to-transparent flex items-end p-6">
+                                <div>
+                                    <h3 class="text-2xl font-bold mb-2 text-blue-100">Ice Crystal Forms</h3>
+                                    <p class="text-blue-200 text-sm">Geometry transformation with smooth transitions</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <div class="flex flex-wrap gap-2">
+                                <span class="px-3 py-1 bg-cyan-500/20 rounded-full text-xs border border-cyan-400/30">Three.js</span>
+                                <span class="px-3 py-1 bg-blue-500/20 rounded-full text-xs border border-blue-400/30">Animation</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Project 3 -->
+                    <div class="project-card frost-panel overflow-hidden">
+                        <div class="relative h-64 bg-gradient-to-br from-cyan-800/50 to-blue-800/50">
+                            <div id="project3-canvas" style="width: 100%; height: 100%;"></div>
+                            <div class="absolute inset-0 bg-gradient-to-t from-blue-900/90 to-transparent flex items-end p-6">
+                                <div>
+                                    <h3 class="text-2xl font-bold mb-2 text-blue-100">Frozen Wave</h3>
+                                    <p class="text-blue-200 text-sm">Procedural animation with sine waves</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <div class="flex flex-wrap gap-2">
+                                <span class="px-3 py-1 bg-cyan-500/20 rounded-full text-xs border border-cyan-400/30">Math</span>
+                                <span class="px-3 py-1 bg-blue-500/20 rounded-full text-xs border border-blue-400/30">Procedural</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact" class="min-h-screen flex items-center justify-center px-4 py-20">
+            <div class="max-w-4xl mx-auto w-full">
+                <h2 class="text-5xl md:text-6xl font-bold ice-text mb-16 text-center">Let's Connect ☃</h2>
+                <div class="frost-panel p-8 md:p-12 winter-glow">
+                    <div class="grid md:grid-cols-2 gap-8 mb-8">
+                        <div class="frost-panel p-6 text-center hover:transform hover:scale-105 transition-all winter-glow">
+                            <div class="text-4xl mb-4">📧</div>
+                            <h3 class="font-bold mb-2 text-blue-100">Email</h3>
+                            <p class="text-blue-200">hello@deepak.dev</p>
+                        </div>
+                        <div class="frost-panel p-6 text-center hover:transform hover:scale-105 transition-all winter-glow">
+                            <div class="text-4xl mb-4">💼</div>
+                            <h3 class="font-bold mb-2 text-blue-100">LinkedIn</h3>
+                            <p class="text-blue-200">@deepakportfolio</p>
+                        </div>
+                    </div>
+                    <form class="space-y-6">
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <input type="text" placeholder="Your Name" 
+                                class="w-full px-6 py-4 bg-blue-900/20 border-2 border-cyan-400/30 rounded-xl focus:border-cyan-400 focus:outline-none transition-all text-white placeholder-blue-300">
+                            <input type="email" placeholder="Your Email" 
+                                class="w-full px-6 py-4 bg-blue-900/20 border-2 border-cyan-400/30 rounded-xl focus:border-cyan-400 focus:outline-none transition-all text-white placeholder-blue-300">
+                        </div>
+                        <textarea placeholder="Your Message" rows="5" 
+                            class="w-full px-6 py-4 bg-blue-900/20 border-2 border-cyan-400/30 rounded-xl focus:border-cyan-400 focus:outline-none transition-all text-white placeholder-blue-300"></textarea>
+                        <button type="submit" 
+                            class="w-full ice-btn px-8 py-4 rounded-xl font-semibold text-lg transition-all winter-glow">
+                            Send Message ❄
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="py-12 px-4 border-t border-cyan-400/20">
+            <div class="max-w-7xl mx-auto text-center">
+                <div class="text-3xl font-bold ice-text mb-6">❄ DEEPAK</div>
+                <div class="flex justify-center space-x-6 mb-6">
+                    <a href="#" class="w-12 h-12 rounded-full frost-panel flex items-center justify-center hover:bg-cyan-400/20 transition-all winter-glow">
+                        <span class="text-xl">𝕏</span>
+                    </a>
+                    <a href="#" class="w-12 h-12 rounded-full frost-panel flex items-center justify-center hover:bg-cyan-400/20 transition-all winter-glow">
+                        <span class="text-xl">in</span>
+                    </a>
+                    <a href="#" class="w-12 h-12 rounded-full frost-panel flex items-center justify-center hover:bg-cyan-400/20 transition-all winter-glow">
+                        <span class="text-xl">gh</span>
+                    </a>
+                </div>
+                <p class="text-blue-300">© 2025 DEEPAK Portfolio. Crafted with Three.js & Winter Magic ❄</p>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Snowfall Effect
+        function createSnowflake() {
+            const snowflake = document.createElement('div');
+            snowflake.classList.add('snowflake');
+            snowflake.innerHTML = ['❄', '❅', '❆'][Math.floor(Math.random() * 3)];
+            snowflake.style.left = Math.random() * 100 + '%';
+            snowflake.style.fontSize = (Math.random() * 10 + 10) + 'px';
+            snowflake.style.animationDuration = (Math.random() * 3 + 7) + 's';
+            snowflake.style.opacity = Math.random() * 0.6 + 0.4;
+            document.getElementById('snowfall').appendChild(snowflake);
+            
+            setTimeout(() => {
+                snowflake.remove();
+            }, 10000);
+        }
+        
+        setInterval(createSnowflake, 200);
+        
+        // Create ice crystals background
+        function createIceCrystals() {
+            const container = document.getElementById('canvas-container');
+            for (let i = 0; i < 50; i++) {
+                const crystal = document.createElement('div');
+                crystal.classList.add('ice-crystal');
+                crystal.style.left = Math.random() * 100 + '%';
+                crystal.style.top = Math.random() * 100 + '%';
+                crystal.style.animationDelay = Math.random() * 3 + 's';
+                container.appendChild(crystal);
+            }
+        }
+        createIceCrystals();
+
+        // Main Scene Setup
+        let scene, camera, renderer, particles, particleSystem;
+        let mouse = { x: 0, y: 0 };
+        
+        function init() {
+            scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x0a1128, 0.002);
+            
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            document.getElementById('canvas-container').appendChild(renderer.domElement);
+            
+            // Create particle system (snowflakes)
+            const particleCount = 3000;
+            const positions = new Float32Array(particleCount * 3);
+            const colors = new Float32Array(particleCount * 3);
+            
+            for (let i = 0; i < particleCount; i++) {
+                positions[i * 3] = (Math.random() - 0.5) * 150;
+                positions[i * 3 + 1] = (Math.random() - 0.5) * 150;
+                positions[i * 3 + 2] = (Math.random() - 0.5) * 150;
+                
+                const color = new THREE.Color();
+                color.setHSL(0.55 + Math.random() * 0.1, 0.3, 0.9);
+                colors[i * 3] = color.r;
+                colors[i * 3 + 1] = color.g;
+                colors[i * 3 + 2] = color.b;
+            }
+            
+            const geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+            
+            const material = new THREE.PointsMaterial({
+                size: 0.8,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.9,
+                blending: THREE.AdditiveBlending
+            });
+            
+            particleSystem = new THREE.Points(geometry, material);
+            scene.add(particleSystem);
+            
+            // Add ice crystal shapes
+            const torusGeometry = new THREE.TorusGeometry(5, 1, 16, 100);
+            const torusMaterial = new THREE.MeshBasicMaterial({
+                color: 0x81d4fa,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.2
+            });
+            const torus = new THREE.Mesh(torusGeometry, torusMaterial);
+            torus.position.set(-20, 0, -30);
+            scene.add(torus);
+            
+            const octahedronGeometry = new THREE.OctahedronGeometry(4, 0);
+            const octahedronMaterial = new THREE.MeshBasicMaterial({
+                color: 0xb3e5fc,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.25
+            });
+            const octahedron = new THREE.Mesh(octahedronGeometry, octahedronMaterial);
+            octahedron.position.set(25, 10, -40);
+            scene.add(octahedron);
+            
+            camera.position.z = 50;
+            
+            // Mouse movement
+            document.addEventListener('mousemove', (e) => {
+                mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+                mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+            });
+            
+            window.addEventListener('resize', onWindowResize);
+            
+            // Initialize project canvases
+            initProjectCanvases();
+            initProfileCanvas();
+            
+            animate();
+        }
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            const time = Date.now() * 0.0001;
+            
+            if (particleSystem) {
+                particleSystem.rotation.x = time * 0.2;
+                particleSystem.rotation.y = time * 0.3;
+                
+                const positions = particleSystem.geometry.attributes.position.array;
+                for (let i = 0; i < positions.length; i += 3) {
+                    positions[i + 1] -= 0.02;
+                    if (positions[i + 1] < -75) {
+                        positions[i + 1] = 75;
+                    }
+                    positions[i] += Math.sin(time + i) * 0.01;
+                }
+                particleSystem.geometry.attributes.position.needsUpdate = true;
+            }
+            
+            camera.position.x += (mouse.x * 3 - camera.position.x) * 0.05;
+            camera.position.y += (mouse.y * 3 - camera.position.y) * 0.05;
+            camera.lookAt(scene.position);
+            
+            renderer.render(scene, camera);
+        }
+        
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+        
+        // Project Canvas Initializations
+        function initProjectCanvases() {
+            // Project 1 - Winter Particles
+            const canvas1 = document.getElementById('project1-canvas');
+            const scene1 = new THREE.Scene();
+            const camera1 = new THREE.PerspectiveCamera(75, canvas1.offsetWidth / canvas1.offsetHeight, 0.1, 1000);
+            const renderer1 = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            renderer1.setSize(canvas1.offsetWidth, canvas1.offsetHeight);
+            canvas1.appendChild(renderer1.domElement);
+            
+            const particles1 = new THREE.BufferGeometry();
+            const positions1 = new Float32Array(1500 * 3);
+            for (let i = 0; i < 1500; i++) {
+                positions1[i * 3] = (Math.random() - 0.5) * 20;
+                positions1[i * 3 + 1] = (Math.random() - 0.5) * 20;
+                positions1[i * 3 + 2] = (Math.random() - 0.5) * 20;
+            }
+            particles1.setAttribute('position', new THREE.BufferAttribute(positions1, 3));
+            const particleMaterial1 = new THREE.PointsMaterial({ 
+                color: 0xb3e5fc, 
+                size: 0.15,
+                transparent: true,
+                opacity: 0.8 
+            });
+            const particleSystem1 = new THREE.Points(particles1, particleMaterial1);
+            scene1.add(particleSystem1);
+            camera1.position.z = 15;
+            
+            function animate1() {
+                requestAnimationFrame(animate1);
+                particleSystem1.rotation.x += 0.002;
+                particleSystem1.rotation.y += 0.003;
+                const pos1 = particleSystem1.geometry.attributes.position.array;
+                for (let i = 0; i < pos1.length; i += 3) {
+                    pos1[i + 1] -= 0.02;
+                    if (pos1[i + 1] < -10) pos1[i + 1] = 10;
+                }
+                particleSystem1.geometry.attributes.position.needsUpdate = true;
+                renderer1.render(scene1, camera1);
+            }
+            animate1();
+            
+            // Project 2 - Ice Crystals
+            const canvas2 = document.getElementById('project2-canvas');
+            const scene2 = new THREE.Scene();
+            const camera2 = new THREE.PerspectiveCamera(75, canvas2.offsetWidth / canvas2.offsetHeight, 0.1, 1000);
+            const renderer2 = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            renderer2.setSize(canvas2.offsetWidth, canvas2.offsetHeight);
+            canvas2.appendChild(renderer2.domElement);
+            
+            const geometry2 = new THREE.IcosahedronGeometry(3, 0);
+            const material2 = new THREE.MeshBasicMaterial({ 
+                color: 0x81d4fa, 
+                wireframe: true 
+            });
+            const mesh2 = new THREE.Mesh(geometry2, material2);
+            scene2.add(mesh2);
+            camera2.position.z = 8;
+            
+            function animate2() {
+                requestAnimationFrame(animate2);
+                mesh2.rotation.x += 0.01;
+                mesh2.rotation.y += 0.01;
+                renderer2.render(scene2, camera2);
+            }
+            animate2();
+            
+            // Project 3 - Frozen Wave
+            const canvas3 = document.getElementById('project3-canvas');
+            const scene3 = new THREE.Scene();
+            const camera3 = new THREE.PerspectiveCamera(75, canvas3.offsetWidth / canvas3.offsetHeight, 0.1, 1000);
+            const renderer3 = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            renderer3.setSize(canvas3.offsetWidth, canvas3.offsetHeight);
+            canvas3.appendChild(renderer3.domElement);
+            
+            const planeGeometry = new THREE.PlaneGeometry(10, 10, 20, 20);
+            const planeMaterial = new THREE.MeshBasicMaterial({ 
+                color: 0xb3e5fc, 
+                wireframe: true 
+            });
+            const plane = new THREE.Mesh(planeGeometry, planeMaterial);
+            plane.rotation.x = -Math.PI / 3;
+            scene3.add(plane);
+            camera3.position.z = 12;
+            camera3.position.y = 5;
+            
+            function animate3() {
+                requestAnimationFrame(animate3);
+                const time = Date.now() * 0.001;
+                const positions = plane.geometry.attributes.position.array;
+                for (let i = 0; i < positions.length; i += 3) {
+                    const x = positions[i];
+                    const y = positions[i + 1];
+                    positions[i + 2] = Math.sin(x + time) * Math.cos(y + time) * 0.5;
+                }
+                plane.geometry.attributes.position.needsUpdate = true;
+                renderer3.render(scene3, camera3);
+            }
+            animate3();
+        }
+        
+        // Profile Canvas with rotating ice crystals
+        function initProfileCanvas() {
+            const canvas = document.getElementById('profile-canvas');
+            if (!canvas) return;
+            
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, canvas.offsetWidth / canvas.offsetHeight, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            renderer.setSize(canvas.offsetWidth, canvas.offsetHeight);
+            canvas.appendChild(renderer.domElement);
+            
+            // Create ice crystal shapes
+            const shapes = [];
+            
+            const dodecahedronGeo = new THREE.DodecahedronGeometry(1.5, 0);
+            const dodecahedronMat = new THREE.MeshBasicMaterial({ 
+                color: 0x81d4fa, 
+                wireframe: true 
+            });
+            const dodecahedron = new THREE.Mesh(dodecahedronGeo, dodecahedronMat);
+            dodecahedron.position.set(-2, 0, 0);
+            scene.add(dodecahedron);
+            shapes.push(dodecahedron);
+            
+            const octahedronGeo = new THREE.OctahedronGeometry(1.5, 0);
+            const octahedronMat = new THREE.MeshBasicMaterial({ 
+                color: 0xb3e5fc, 
+                wireframe: true 
+            });
+            const octahedron = new THREE.Mesh(octahedronGeo, octahedronMat);
+            octahedron.position.set(2, 0, 0);
+            scene.add(octahedron);
+            shapes.push(octahedron);
+            
+            const torusKnotGeo = new THREE.TorusKnotGeometry(1, 0.3, 100, 16);
+            const torusKnotMat = new THREE.MeshBasicMaterial({ 
+                color: 0x4fc3f7, 
+                wireframe: true 
+            });
+            const torusKnot = new THREE.Mesh(torusKnotGeo, torusKnotMat);
+            torusKnot.position.set(0, 2, 0);
+            scene.add(torusKnot);
+            shapes.push(torusKnot);
+            
+            camera.position.z = 8;
+            
+            function animate() {
+                requestAnimationFrame(animate);
+                shapes.forEach((shape, index) => {
+                    shape.rotation.x += 0.01 * (index + 1);
+                    shape.rotation.y += 0.01 * (index + 1);
+                });
+                renderer.render(scene, camera);
+            }
+            animate();
+        }
+        
+        // Smooth scroll function
+        function scrollToSection(id) {
+            const element = document.getElementById(id);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+        
+        // Initialize everything
+        document.addEventListener('DOMContentLoaded', () => {
+            init();
+            
+            // Animate stats counters
+            const animateCounter = (element) => {
+                const target = parseInt(element.getAttribute('data-target'));
+                const duration = 2000;
+                const step = target / (duration / 16);
+                let current = 0;
+                
+                const updateCounter = () => {
+                    current += step;
+                    if (current < target) {
+                        element.textContent = Math.floor(current);
+                        requestAnimationFrame(updateCounter);
+                    } else {
+                        element.textContent = target + (target === 50 || target === 30 ? '+' : '');
+                    }
+                };
+                updateCounter();
+            };
+            
+            // Observe sections for scroll animations
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -100px 0px'
+            };
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                        
+                        // Animate counters when about section is visible
+                        if (entry.target.id === 'about') {
+                            const counters = entry.target.querySelectorAll('.stats-counter');
+                            counters.forEach(counter => {
+                                if (!counter.classList.contains('animated')) {
+                                    counter.classList.add('animated');
+                                    animateCounter(counter);
+                                }
+                            });
+                        }
+                    }
+                });
+            }, observerOptions);
+            
+            document.querySelectorAll('section').forEach(section => {
+                section.style.opacity = '0';
+                section.style.transform = 'translateY(30px)';
+                section.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
+                observer.observe(section);
+            });
+            
+            // Magnetic button effect
+            document.querySelectorAll('.magnetic-btn').forEach(btn => {
+                btn.addEventListener('mousemove', (e) => {
+                    const rect = btn.getBoundingClientRect();
+                    const x = e.clientX - rect.left - rect.width / 2;
+                    const y = e.clientY - rect.top - rect.height / 2;
+                    btn.style.transform = `translate(${x * 0.2}px, ${y * 0.2}px)`;
+                });
+                
+                btn.addEventListener('mouseleave', () => {
+                    btn.style.transform = 'translate(0, 0)';
+                });
+            });
+            
+            // Smooth scroll for navigation
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                });
+            });
+            
+            // Add parallax effect to hero section
+            let ticking = false;
+            window.addEventListener('scroll', () => {
+                if (!ticking) {
+                    window.requestAnimationFrame(() => {
+                        const scrolled = window.pageYOffset;
+                        const hero = document.querySelector('#home');
+                        if (hero && scrolled < window.innerHeight) {
+                            hero.style.transform = `translateY(${scrolled * 0.5}px)`;
+                            hero.style.opacity = 1 - (scrolled / window.innerHeight) * 0.5;
+                        }
+                        ticking = false;
+                    });
+                    ticking = true;
+                }
+            });
+        });
+    </script>
+</body>
+</html>
